@@ -1,0 +1,13 @@
+HIA_Hou Dataset Classification Verification
+=========================================
+
+Total samples: 578
+Target values: [0, 1]
+Class distribution:
+Class 0: 78 samples (13.49%)
+Class 1: 500 samples (86.51%)
+
+Verification Result: Binary Classification Problem
+Target variable represents binary outcomes for Human Intestinal Absorption
+0: Not Absorbed
+1: Absorbed

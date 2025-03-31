@@ -1,0 +1,35 @@
+HIA_Hou Dataset Background Information
+====================================
+
+1. Dataset Overview
+-----------------
+The HIA_Hou dataset is focused on Human Intestinal Absorption (HIA),
+which is a crucial property in drug development and pharmaceutical research.
+
+2. Scientific Background
+---------------------
+Human Intestinal Absorption (HIA) is the process by which drugs and other
+compounds are absorbed from the gastrointestinal tract into the bloodstream.
+This property is essential for oral drug delivery and bioavailability.
+
+3. Endpoint Description
+--------------------
+The endpoint is binary:
+- 0: Compound is NOT absorbed through the human intestine
+- 1: Compound IS absorbed through the human intestine
+
+4. Practical Significance
+----------------------
+Understanding HIA is crucial for:
+- Drug development and screening
+- Optimizing oral drug delivery
+- Predicting drug bioavailability
+- Reducing costs in drug development
+
+5. Dataset Statistics
+------------------
+Total Compounds: 578
+Unique Molecules: 578
+Class Distribution:
+- Class 0: 78 samples (13.49%)
+- Class 1: 500 samples (86.51%)

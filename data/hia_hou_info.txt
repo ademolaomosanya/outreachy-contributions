@@ -1,0 +1,35 @@
+HIA_Hou Dataset Information
+==========================
+
+1. Basic Statistics
+-----------------
+Total samples: 578
+Features: Drug_ID, Drug, Y
+File size: 36.94 KB
+
+2. Class Distribution
+-------------------
+Class 0 (Not Absorbed): 78 samples
+Class 1 (Absorbed): 500 samples
+
+3. SMILES Statistics
+-----------------
+Average SMILES length: 47.6 characters
+Min SMILES length: 3 characters
+Max SMILES length: 266 characters
+
+4. Sample Entries
+--------------
+First 3 entries:
+Drug ID: Acetanilide
+SMILES: CC(=O)Nc1ccccc1
+Label: 1
+--------------------------------------------------
+Drug ID: Acetazolamide.mol
+SMILES: CC(=O)Nc1nnc(S(N)(=O)=O)s1
+Label: 1
+--------------------------------------------------
+Drug ID: Alfacalcidol
+SMILES: C=C1/C(=C\C=C2/CCC[C@]3(C)[C@@H]2CC[C@H]3[C@@H](C)CCCC(C)C)C[C@H](O)C[C@H]1O
+Label: 1
+--------------------------------------------------
