@@ -37,7 +37,7 @@ source venv/bin/activate  # On Windows, use: venv\Scripts\activate
 
 3. Install required packages:
 ```bash
-pip install tdc pandas
+pip install -r requirements.txt
 ```
 
 ## Dataset Details
@@ -193,15 +193,69 @@ The following files are generated:
 
 ## Executing the Code
 
-### 1. Get the dataset
-```bash Python scripts/download_dataset.py ```will download and prepare the dataset.
+### Configuration
+The project uses a centralized configuration file (`config.py`) that contains all important parameters:
+- Dataset parameters (test size, random seed)
+- Feature generation parameters (fingerprint sizes, radii)
+- Model parameters (XGBoost hyperparameters)
+- Visualization settings
+- File paths
+
+This ensures reproducibility and makes it easy to modify parameters without changing the code.
+
+1. **Download the Dataset**
+```bash
+python scripts/download_dataset.py
+```
 This will:
-The HIA_Hou dataset can be downloaded from TDC, saved as a CSV file in the `data` folder, and its statistics can be generated in `data/hia_hou_info.txt`.
+- Download the HIA_Hou dataset from TDC
+- Save it as `data/hia_hou_dataset.csv`
+- Generate dataset statistics in `data/hia_hou_info.txt`
 
+2. **Generate Features**
+```bash
+python scripts/featurize_molecules.py
+```
+This will:
+- Generate all molecular features
+- Save features to `data/molecular_features.csv`
+- Log any errors or warnings to the console
 
-### Output Documents
-Following script execution, the main dataset file is located at `data/hia_hou_dataset.csv`.
-The file "data/hia_hou_info.txt`": Comprehensive facts and statistics from the dataset
+3. **Train the Model**
+```bash
+python scripts/run_workflow.py
+```
+This will:
+- Load and preprocess the dataset
+- Generate molecular features
+- Train the XGBoost model
+- Evaluate performance
+- Generate visualizations
+
+### Output Files and Formats
+
+1. **Dataset Files**:
+   - `data/hia_hou_dataset.csv`: Original dataset (columns: Drug_ID, Drug, Y)
+   - `data/hia_hou_info.txt`: Dataset statistics and information
+   - `data/molecular_features.csv`: Generated features (CSV format)
+
+2. **Model Files**:
+   - `models/hia_model.joblib`: Trained XGBoost model
+   - `models/feature_scaler.joblib`: Feature scaler for preprocessing
+   - `data/model_performance.txt`: Model evaluation metrics
+
+3. **Visualization Files**:
+   - `data/performance_metrics.png`: Bar chart of model metrics
+   - `data/confusion_matrix.png`: Confusion matrix visualization
+   - `data/roc_curve.png`: ROC curve with AUC score
+   - `data/feature_importance.png`: Top 20 most important features
+
+### Error Handling and Logging
+The project includes comprehensive error handling:
+- Invalid SMILES strings are logged and handled gracefully
+- Failed feature generation is logged with detailed error messages
+- All operations are logged with appropriate severity levels
+- Configuration errors are caught and reported clearly
 
 ## Contributing
 1. Fork the repository

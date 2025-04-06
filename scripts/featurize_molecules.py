@@ -25,17 +25,57 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class MolecularFeaturizer:
-    """A class for generating various molecular features from SMILES strings."""
+    """
+    A class for generating comprehensive molecular features from SMILES strings.
+    
+    This class implements various molecular featurization methods including:
+    - Morgan Fingerprints (ECFP)
+    - MACCS Keys
+    - Atom Pair Fingerprints
+    - Topological Torsion Fingerprints
+    - Molecular Descriptors
+    - 3D Molecular Descriptors
+    
+    All parameters are loaded from config.py to ensure reproducibility.
+    
+    Example:
+        >>> featurizer = MolecularFeaturizer()
+        >>> smiles = "CC(=O)OC1=CC=CC=C1C(=O)O"  # Aspirin
+        >>> features = featurizer.get_all_features(smiles)
+        >>> print(features.keys())
+        dict_keys(['morgan', 'maccs', 'atom_pair', 'torsion', 'descriptors', '3d_descriptors'])
+    """
     
     def __init__(self):
-        """Initialize the featurizer with available descriptors."""
+        """
+        Initialize the featurizer with available descriptors.
+        
+        Sets up:
+        - Molecular descriptor calculator
+        - Descriptor names list
+        - Logging configuration
+        """
         self.descriptor_calculator = MoleculeDescriptors.MolecularDescriptorCalculator(
             [x[0] for x in Descriptors._descList]
         )
         self.descriptor_names = [x[0] for x in Descriptors._descList]
     
     def _validate_smiles(self, smiles: str) -> bool:
-        """Validate SMILES string."""
+        """
+        Validate SMILES string format.
+        
+        Args:
+            smiles (str): SMILES string to validate
+            
+        Returns:
+            bool: True if SMILES is valid, False otherwise
+            
+        Example:
+            >>> featurizer._validate_smiles("CC(=O)OC1=CC=CC=C1C(=O)O")
+            True
+            >>> featurizer._validate_smiles("invalid_smiles")
+            False
+        """
         if not isinstance(smiles, str):
             return False
         if not smiles.strip():
@@ -43,7 +83,20 @@ class MolecularFeaturizer:
         return True
     
     def _get_mol(self, smiles: str) -> Optional[Chem.Mol]:
-        """Convert SMILES to RDKit molecule object."""
+        """
+        Convert SMILES to RDKit molecule object with error handling.
+        
+        Args:
+            smiles (str): SMILES string to convert
+            
+        Returns:
+            Optional[Chem.Mol]: RDKit molecule object or None if conversion fails
+            
+        Example:
+            >>> mol = featurizer._get_mol("CC(=O)OC1=CC=CC=C1C(=O)O")
+            >>> print(type(mol))
+            <class 'rdkit.Chem.rdchem.Mol'>
+        """
         if not self._validate_smiles(smiles):
             logger.warning(f"Invalid SMILES format: {smiles}")
             return None
