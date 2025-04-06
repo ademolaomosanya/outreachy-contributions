@@ -1,65 +1,60 @@
-from tdc.single_pred import ADME
-import pandas as pd
 import os
+import pandas as pd
+import requests
+from pathlib import Path
 
 def download_and_save_dataset():
-    """
-    Download the HIA_Hou dataset from TDC and save it in the data folder.
-    Also saves a data info file with basic statistics.
-    """
+    """Download the HIA_Hou dataset and save it locally."""
     # Create data directory if it doesn't exist
-    os.makedirs('data', exist_ok=True)
+    data_dir = Path('data')
+    data_dir.mkdir(exist_ok=True)
     
-    print("1. Downloading HIA_Hou dataset...")
-    data = ADME(name='HIA_Hou')
-    df = data.get_data()
+    # URL to the dataset
+    url = 'https://raw.githubusercontent.com/mims-harvard/TDC/main/data/adme/HIA_Hou.csv'
     
-    # Save the main dataset
-    output_file = os.path.join('data', 'hia_hou_dataset.csv')
-    df.to_csv(output_file, index=False)
-    print(f"Dataset saved to: {output_file}")
-    
-    # Save data info
-    info_file = os.path.join('data', 'hia_hou_info.txt')
-    with open(info_file, 'w') as f:
-        f.write("HIA_Hou Dataset Information\n")
-        f.write("==========================\n\n")
+    try:
+        # Download the dataset
+        print("Downloading HIA_Hou dataset...")
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for bad status codes
         
-        f.write("1. Basic Statistics\n")
-        f.write("-----------------\n")
-        f.write(f"Total samples: {len(df)}\n")
-        f.write(f"Features: {', '.join(df.columns)}\n")
-        f.write(f"File size: {os.path.getsize(output_file) / 1024:.2f} KB\n\n")
+        # Save the dataset
+        dataset_path = data_dir / 'hia_hou_dataset.csv'
+        with open(dataset_path, 'w') as f:
+            f.write(response.text)
         
-        f.write("2. Class Distribution\n")
-        f.write("-------------------\n")
+        # Read the dataset to generate statistics
+        df = pd.read_csv(dataset_path)
+        
+        # Generate dataset information
+        info = []
+        info.append("Dataset Statistics:")
+        info.append(f"Number of samples: {len(df)}")
+        info.append(f"Number of features: {len(df.columns)}")
+        info.append("\nClass Distribution:")
         class_dist = df['Y'].value_counts()
-        f.write(f"Class 0 (Not Absorbed): {class_dist[0]} samples\n")
-        f.write(f"Class 1 (Absorbed): {class_dist[1]} samples\n\n")
+        info.append(f"Class 0: {class_dist.get(0, 0)}")
+        info.append(f"Class 1: {class_dist.get(1, 0)}")
         
-        f.write("3. SMILES Statistics\n")
-        f.write("-----------------\n")
-        f.write(f"Average SMILES length: {df['Drug'].str.len().mean():.1f} characters\n")
-        f.write(f"Min SMILES length: {df['Drug'].str.len().min()} characters\n")
-        f.write(f"Max SMILES length: {df['Drug'].str.len().max()} characters\n\n")
+        info.append("\nSMILES Statistics:")
+        smiles_lengths = df['Drug'].str.len()
+        info.append(f"Average SMILES length: {smiles_lengths.mean():.2f}")
+        info.append(f"Min SMILES length: {smiles_lengths.min()}")
+        info.append(f"Max SMILES length: {smiles_lengths.max()}")
         
-        f.write("4. Sample Entries\n")
-        f.write("--------------\n")
-        f.write("First 3 entries:\n")
-        for _, row in df.head(3).iterrows():
-            f.write(f"Drug ID: {row['Drug_ID']}\n")
-            f.write(f"SMILES: {row['Drug']}\n")
-            f.write(f"Label: {row['Y']}\n")
-            f.write("-" * 50 + "\n")
-    
-    print(f"Dataset info saved to: {info_file}")
-    
-    # Print summary
-    print("\nDownload Summary:")
-    print(f"- Dataset shape: {df.shape}")
-    print(f"- Features: {', '.join(df.columns)}")
-    print(f"- Class distribution: {dict(class_dist)}")
-    print(f"- Files saved in: {os.path.abspath('data')}")
-
-if __name__ == "__main__":
+        info.append("\nSample Entries:")
+        info.extend(df.head().to_string().split('\n'))
+        
+        # Save dataset information
+        info_path = data_dir / 'hia_hou_info.txt'
+        with open(info_path, 'w') as f:
+            f.write('\n'.join(info))
+            
+        print(f"Dataset downloaded successfully to {dataset_path}")
+        print(f"Dataset information saved to {info_path}")
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading dataset: {e}")
+        
+if __name__ == '__main__':
     download_and_save_dataset() 

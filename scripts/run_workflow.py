@@ -13,11 +13,16 @@ import pickle
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, roc_curve, auc
+import sys
+
+# Add the project root to the path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import *
 
 def setup_directories():
     """Create necessary directories"""
-    os.makedirs('data', exist_ok=True)
-    os.makedirs('models', exist_ok=True)
+    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(MODELS_DIR, exist_ok=True)
 
 def generate_molecular_features(smiles):
     """Generate molecular features from SMILES string"""
@@ -27,7 +32,7 @@ def generate_molecular_features(smiles):
             return None
         
         # Generate Morgan fingerprint
-        fingerprint = AllChem.GetMorganFingerprintAsBitVect(mol, 2, nBits=2048)
+        fingerprint = AllChem.GetMorganFingerprintAsBitVect(mol, MORGAN_FP_RADIUS, nBits=MORGAN_FP_BITS)
         fp_array = np.zeros((1,))
         DataStructs.ConvertToNumpyArray(fingerprint, fp_array)
         
@@ -45,7 +50,7 @@ def generate_molecular_features(smiles):
         
         # Combine features
         features = np.concatenate([fp_array, descriptors])
-        feature_names = [f'fp_{i}' for i in range(2048)] + descriptor_names
+        feature_names = [f'fp_{i}' for i in range(MORGAN_FP_BITS)] + descriptor_names
         
         return features, feature_names
     except:
@@ -75,7 +80,10 @@ def train_and_evaluate():
     
     print("3. Splitting data...")
     X_train, X_test, y_train, y_test = train_test_split(
-        features, labels, test_size=0.2, random_state=42
+        features, labels, 
+        test_size=TEST_SIZE, 
+        random_state=RANDOM_SEED,
+        stratify=labels if STRATIFY else None
     )
     
     print("4. Scaling features...")
@@ -84,7 +92,7 @@ def train_and_evaluate():
     X_test_scaled = scaler.transform(X_test)
     
     print("5. Training model...")
-    model = xgb.XGBClassifier(random_state=42)
+    model = xgb.XGBClassifier(**XGBOOST_PARAMS)
     model.fit(X_train_scaled, y_train)
     
     print("6. Making predictions...")
@@ -102,7 +110,7 @@ def train_and_evaluate():
     
     print("8. Saving data and models...")
     # Save visualization data
-    with open('data/visualization_data.pkl', 'wb') as f:
+    with open(os.path.join(DATA_DIR, 'visualization_data.pkl'), 'wb') as f:
         pickle.dump({
             'y_test': y_test,
             'y_pred': y_pred,
@@ -112,14 +120,15 @@ def train_and_evaluate():
         }, f)
     
     # Save model and scaler
-    joblib.dump(model, 'models/hia_model.joblib')
-    joblib.dump(scaler, 'models/feature_scaler.joblib')
+    joblib.dump(model, os.path.join(MODELS_DIR, 'hia_model.joblib'))
+    joblib.dump(scaler, os.path.join(MODELS_DIR, 'feature_scaler.joblib'))
     
     return metrics
 
 def plot_metrics(metrics):
     """Plot performance metrics"""
-    plt.figure(figsize=(10, 6))
+    plt.style.use(PLOT_STYLE)
+    plt.figure(figsize=PLOT_FIGSIZE, dpi=PLOT_DPI)
     metrics_names = ['Accuracy', 'Precision', 'Recall', 'F1 Score', 'ROC AUC']
     values = [metrics['accuracy'], metrics['precision'], 
              metrics['recall'], metrics['f1'], metrics['roc_auc']]
@@ -136,13 +145,14 @@ def plot_metrics(metrics):
                 ha='center', va='bottom')
     
     plt.tight_layout()
-    plt.savefig('data/performance_metrics.png')
+    plt.savefig(os.path.join(VISUALIZATIONS_DIR, 'performance_metrics.png'))
     plt.close()
 
 def plot_confusion_matrix(y_true, y_pred):
     """Plot confusion matrix"""
+    plt.style.use(PLOT_STYLE)
+    plt.figure(figsize=PLOT_FIGSIZE, dpi=PLOT_DPI)
     cm = confusion_matrix(y_true, y_pred)
-    plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
                 xticklabels=['Low Absorption', 'High Absorption'],
                 yticklabels=['Low Absorption', 'High Absorption'])
@@ -150,15 +160,16 @@ def plot_confusion_matrix(y_true, y_pred):
     plt.xlabel('Predicted', fontsize=12)
     plt.ylabel('Actual', fontsize=12)
     plt.tight_layout()
-    plt.savefig('data/confusion_matrix.png')
+    plt.savefig(os.path.join(VISUALIZATIONS_DIR, 'confusion_matrix.png'))
     plt.close()
 
 def plot_roc_curve(y_true, y_scores):
     """Plot ROC curve"""
+    plt.style.use(PLOT_STYLE)
+    plt.figure(figsize=PLOT_FIGSIZE, dpi=PLOT_DPI)
     fpr, tpr, _ = roc_curve(y_true, y_scores)
     roc_auc = auc(fpr, tpr)
     
-    plt.figure(figsize=(8, 6))
     plt.plot(fpr, tpr, color='darkorange', lw=2,
              label=f'ROC curve (AUC = {roc_auc:.4f})')
     plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
@@ -169,22 +180,23 @@ def plot_roc_curve(y_true, y_scores):
     plt.title('Receiver Operating Characteristic (ROC) Curve', fontsize=14)
     plt.legend(loc="lower right")
     plt.tight_layout()
-    plt.savefig('data/roc_curve.png')
+    plt.savefig(os.path.join(VISUALIZATIONS_DIR, 'roc_curve.png'))
     plt.close()
 
 def plot_feature_importance(model, feature_names):
     """Plot feature importance"""
+    plt.style.use(PLOT_STYLE)
+    plt.figure(figsize=PLOT_FIGSIZE, dpi=PLOT_DPI)
     importance = model.feature_importances_
     indices = np.argsort(importance)[::-1]
     
-    plt.figure(figsize=(12, 8))
     plt.bar(range(20), importance[indices[:20]], color='skyblue')
     plt.xticks(range(20), [feature_names[i] for i in indices[:20]], rotation=45, ha='right')
     plt.title('Top 20 Most Important Features', fontsize=14)
     plt.xlabel('Features', fontsize=12)
     plt.ylabel('Importance Score', fontsize=12)
     plt.tight_layout()
-    plt.savefig('data/feature_importance.png')
+    plt.savefig(os.path.join(VISUALIZATIONS_DIR, 'feature_importance.png'))
     plt.close()
 
 def generate_visualizations():
@@ -192,11 +204,11 @@ def generate_visualizations():
     print("9. Generating visualizations...")
     
     # Load data
-    with open('data/visualization_data.pkl', 'rb') as f:
+    with open(os.path.join(DATA_DIR, 'visualization_data.pkl'), 'rb') as f:
         data = pickle.load(f)
     
     # Load model
-    model = joblib.load('models/hia_model.joblib')
+    model = joblib.load(os.path.join(MODELS_DIR, 'hia_model.joblib'))
     
     # Generate plots
     plot_metrics(data['metrics'])
@@ -213,7 +225,7 @@ def generate_visualizations():
 def main():
     """Main workflow"""
     # Set random seeds for reproducibility
-    np.random.seed(42)
+    np.random.seed(RANDOM_SEED)
     
     # Setup directories
     setup_directories()

@@ -71,9 +71,81 @@ The model-building process involves several key steps:
 4. Performance visualization
 
 ### Feature Generation
-The model uses two types of molecular features:
-1. **Morgan Fingerprints**: 2048-bit binary vectors representing molecular substructures
-2. **Molecular Descriptors**: Various physicochemical properties calculated using RDKit
+The model uses a comprehensive set of molecular features generated using the `MolecularFeaturizer` class. The featurization process is fully reproducible and includes the following feature types:
+
+1. **Morgan Fingerprints (ECFP)**
+   - Radius: 2
+   - Number of bits: 2048
+   - Captures local structural information and pharmacophore features
+
+2. **MACCS Keys**
+   - 167-bit binary vectors
+   - Identifies specific functional groups and structural patterns
+
+3. **Atom Pair Fingerprints**
+   - 2048-bit binary vectors
+   - Captures atom pair relationships and distances
+
+4. **Topological Torsion Fingerprints**
+   - 2048-bit binary vectors
+   - Describes molecular connectivity and flexibility
+
+5. **Molecular Descriptors**
+   - Physicochemical properties (e.g., logP, molecular weight)
+   - Electronic properties
+   - Topological indices
+
+6. **3D Molecular Descriptors**
+   - Shape-based descriptors
+   - Conformational properties
+   - Generated using RDKit's 3D conformation generation
+
+### Featurization Process
+To generate features for your molecules:
+
+1. **Setup the Environment**
+   ```bash
+   # Install required packages
+   pip install -r requirements.txt
+   ```
+
+2. **Using the MolecularFeaturizer**
+   ```python
+   from scripts.featurize_molecules import MolecularFeaturizer
+   
+   # Initialize the featurizer
+   featurizer = MolecularFeaturizer()
+   
+   # Generate features for a single molecule
+   smiles = "CC(=O)OC1=CC=CC=C1C(=O)O"  # Example SMILES (Aspirin)
+   features = featurizer.get_all_features(smiles)
+   
+   # Generate features for a dataset
+   smiles_list = ["CC(=O)OC1=CC=CC=C1C(=O)O", "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O"]
+   features_df, feature_names = featurizer.featurize_dataset(smiles_list)
+   ```
+
+3. **Configuration**
+   All featurization parameters are stored in `config.py`:
+   - `MORGAN_FP_RADIUS`: Radius for Morgan fingerprints
+   - `MORGAN_FP_BITS`: Number of bits for fingerprint vectors
+   - `ATOM_PAIR_FP_BITS`: Number of bits for atom pair fingerprints
+   - `TORSION_FP_BITS`: Number of bits for torsion fingerprints
+   - `RANDOM_SEED`: Random seed for reproducibility
+
+4. **Reproducibility**
+   The featurization process is fully reproducible:
+   - Fixed random seeds for all operations
+   - Consistent parameter values across runs
+   - Version-controlled package dependencies
+   - Centralized configuration
+
+5. **Error Handling**
+   The featurizer includes robust error handling:
+   - Invalid SMILES validation
+   - Graceful handling of failed feature generation
+   - Logging of errors and warnings
+   - Replacement of failed features with zeros
 
 ### Model Architecture
 - **Algorithm**: XGBoost Classifier
