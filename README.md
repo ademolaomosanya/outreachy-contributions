@@ -61,6 +61,64 @@ The following columns are included in the CSV file that contains the dataset:
 - `Drug`: The molecular structure is represented by the SMILES string
 - `Y`: Label for binary absorption
 
+## Model Building Process
+
+### Overview
+The model-building process involves several key steps:
+1. Data loading and preprocessing
+2. Feature generation from molecular structures
+3. Model training and evaluation
+4. Performance visualization
+
+### Feature Generation
+The model uses two types of molecular features:
+1. **Morgan Fingerprints**: 2048-bit binary vectors representing molecular substructures
+2. **Molecular Descriptors**: Various physicochemical properties calculated using RDKit
+
+### Model Architecture
+- **Algorithm**: XGBoost Classifier
+- **Random State**: 42 (for reproducibility)
+- **Train-Test Split**: 80-20 split with random state 42
+- **Feature Scaling**: StandardScaler for normalization
+
+### Performance Metrics
+The model achieves the following performance metrics:
+- Accuracy: 94.83%
+- Precision: 95.05%
+- Recall: 98.97%
+- F1 Score: 96.97%
+- ROC AUC: 98.05%
+
+### Running the Model
+To train the model and generate visualizations, run:
+```bash
+python scripts/run_workflow.py
+```
+
+This script will:
+1. Create necessary directories (`data/` and `models/`)
+2. Load and preprocess the dataset
+3. Generate molecular features
+4. Train the XGBoost model
+5. Evaluate model performance
+6. Generate visualizations
+
+### Output Files
+The following files are generated:
+- `data/visualization_data.pkl`: Contains test data and predictions
+- `models/hia_model.joblib`: Trained XGBoost model
+- `models/feature_scaler.joblib`: Feature scaler for preprocessing
+- `data/performance_metrics.png`: Bar chart of model metrics
+- `data/confusion_matrix.png`: Confusion matrix visualization
+- `data/roc_curve.png`: ROC curve with AUC score
+- `data/feature_importance.png`: Top 20 most important features
+
+### Visualization Interpretation
+1. **Performance Metrics**: Shows the model's accuracy, precision, recall, F1 score, and ROC AUC
+2. **Confusion Matrix**: Displays true positives, true negatives, false positives, and false negatives
+3. **ROC Curve**: Illustrates the trade-off between true positive rate and false positive rate
+4. **Feature Importance**: Identifies the most influential molecular features for absorption prediction
+
 ## Executing the Code
 
 ### 1. Get the dataset
